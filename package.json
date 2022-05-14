@@ -1,0 +1,16 @@
+{
+  "name": "running_pace_calculator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/woylie/running_pace_calculator",
+  "author": "Mathias Polligkeit",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "analyse": "elm-analyse -s",
+    "watch": "elm-live src/Main.elm"
+  },
+  "devDependencies": {
+    "elm-analyse": "^0.16.5",
+    "elm-live": "^4.0.2"
+  }
+}
