@@ -275,9 +275,23 @@ update msg model =
 
 updateDistance : Length -> Model -> Model
 updateDistance distance model =
+    let
+        pace =
+            minutesAndSecondsPerKilometer
+                (parseIntWithDefault model.pacePerKmMinutes)
+                (parseIntWithDefault model.pacePerKmSeconds)
+
+        ( durationHours, durationMinutes, durationSeconds ) =
+            durationFromDistanceAndPace distance pace
+                |> inSeconds
+                |> toHoursMinutesAndSeconds
+    in
     { model
         | distanceInKilometers = roundForDisplay <| Length.inKilometers distance
         , distanceInMiles = roundForDisplay <| Length.inMiles distance
+        , durationHours = String.fromInt durationHours
+        , durationMinutes = String.fromInt durationMinutes
+        , durationSeconds = String.fromInt durationSeconds
     }
 
 
