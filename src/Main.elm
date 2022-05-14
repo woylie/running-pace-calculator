@@ -527,9 +527,40 @@ view model =
 
 roundForDisplay : Float -> String
 roundForDisplay n =
-    n
-        |> Round.round 3
-        |> String.trim
+    let
+        roundedN =
+            n
+                |> Round.round 3
+                |> String.trim
+
+        decimals =
+            String.right 3 roundedN
+
+        whole =
+            String.slice 0 -4 roundedN
+
+        newDecimals =
+            removeTrailingZeros decimals
+    in
+    if newDecimals == "" then
+        whole
+
+    else
+        whole ++ "." ++ newDecimals
+
+
+removeTrailingZeros : String -> String
+removeTrailingZeros s =
+    let
+        trim : Char -> String -> String
+        trim ch acc =
+            if acc == "" && ch == '0' then
+                ""
+
+            else
+                String.fromChar ch ++ acc
+    in
+    String.foldr trim "" s
 
 
 
