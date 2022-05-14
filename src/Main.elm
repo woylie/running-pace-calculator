@@ -1,11 +1,11 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Duration exposing (Seconds)
+import Duration exposing (Duration, Seconds, inSeconds, seconds)
 import Html exposing (Html, div, input, label, span, text)
 import Html.Attributes as Attr exposing (for, id, type_, value)
 import Html.Events exposing (onInput)
-import Length exposing (Length, Meters)
+import Length exposing (Length, Meters, inMeters)
 import Quantity exposing (Quantity, Rate)
 import Round
 import Speed
@@ -33,6 +33,9 @@ type alias Model =
     , pacePerMileSeconds : String
     , speedInKmh : String
     , speedInMph : String
+    , durationHours : String
+    , durationMinutes : String
+    , durationSeconds : String
     }
 
 
@@ -45,6 +48,9 @@ type Msg
     | SetPacePerMileSeconds String
     | SetSpeedInKmh String
     | SetSpeedInMph String
+    | SetTotalTimeHours String
+    | SetTotalTimeMinutes String
+    | SetTotalTimeSeconds String
 
 
 init : Model
@@ -71,6 +77,9 @@ emptyModel =
     , pacePerMileSeconds = ""
     , speedInKmh = ""
     , speedInMph = ""
+    , durationHours = ""
+    , durationMinutes = ""
+    , durationSeconds = ""
     }
 
 
@@ -83,7 +92,8 @@ update msg model =
                     s
                         |> String.toFloat
                         |> Maybe.map Length.kilometers
-                        |> Maybe.map (\distance -> updateDistance distance model)
+                        |> Maybe.map
+                            (\distance -> updateDistance distance model)
                         |> Maybe.withDefault model
             in
             { newModel | distanceInKilometers = s }
@@ -94,7 +104,8 @@ update msg model =
                     s
                         |> String.toFloat
                         |> Maybe.map Length.miles
-                        |> Maybe.map (\distance -> updateDistance distance model)
+                        |> Maybe.map
+                            (\distance -> updateDistance distance model)
                         |> Maybe.withDefault model
             in
             { newModel | distanceInMiles = s }
@@ -102,12 +113,15 @@ update msg model =
         SetPacePerKmMinutes s ->
             let
                 seconds =
-                    model.pacePerKmSeconds |> String.toInt |> Maybe.withDefault 0
+                    parseIntWithDefault model.pacePerKmSeconds
 
                 newModel =
                     s
                         |> String.toInt
-                        |> Maybe.map (\minutes -> minutesAndSecondsPerKilometer minutes seconds)
+                        |> Maybe.map
+                            (\minutes ->
+                                minutesAndSecondsPerKilometer minutes seconds
+                            )
                         |> Maybe.map (\pace -> updatePace pace model)
                         |> Maybe.withDefault model
             in
@@ -116,12 +130,15 @@ update msg model =
         SetPacePerKmSeconds s ->
             let
                 minutes =
-                    model.pacePerKmMinutes |> String.toInt |> Maybe.withDefault 0
+                    parseIntWithDefault model.pacePerKmMinutes
 
                 newModel =
                     s
                         |> String.toInt
-                        |> Maybe.map (\seconds -> minutesAndSecondsPerKilometer minutes seconds)
+                        |> Maybe.map
+                            (\seconds ->
+                                minutesAndSecondsPerKilometer minutes seconds
+                            )
                         |> Maybe.map (\pace -> updatePace pace model)
                         |> Maybe.withDefault model
             in
@@ -130,12 +147,15 @@ update msg model =
         SetPacePerMileMinutes s ->
             let
                 seconds =
-                    model.pacePerMileSeconds |> String.toInt |> Maybe.withDefault 0
+                    parseIntWithDefault model.pacePerMileSeconds
 
                 newModel =
                     s
                         |> String.toInt
-                        |> Maybe.map (\minutes -> minutesAndSecondsPerMile minutes seconds)
+                        |> Maybe.map
+                            (\minutes ->
+                                minutesAndSecondsPerMile minutes seconds
+                            )
                         |> Maybe.map (\pace -> updatePace pace model)
                         |> Maybe.withDefault model
             in
@@ -144,12 +164,15 @@ update msg model =
         SetPacePerMileSeconds s ->
             let
                 minutes =
-                    model.pacePerMileMinutes |> String.toInt |> Maybe.withDefault 0
+                    parseIntWithDefault model.pacePerMileMinutes
 
                 newModel =
                     s
                         |> String.toInt
-                        |> Maybe.map (\seconds -> minutesAndSecondsPerMile minutes seconds)
+                        |> Maybe.map
+                            (\seconds ->
+                                minutesAndSecondsPerMile minutes seconds
+                            )
                         |> Maybe.map (\pace -> updatePace pace model)
                         |> Maybe.withDefault model
             in
@@ -177,6 +200,78 @@ update msg model =
             in
             { newModel | speedInMph = s }
 
+        SetTotalTimeHours s ->
+            let
+                minutesValue =
+                    parseIntWithDefault model.durationMinutes
+
+                secondsValue =
+                    parseIntWithDefault model.durationSeconds
+
+                newModel =
+                    s
+                        |> String.toInt
+                        |> Maybe.map
+                            (\hoursValue ->
+                                hoursMinutesAndSeconds
+                                    hoursValue
+                                    minutesValue
+                                    secondsValue
+                            )
+                        |> Maybe.map
+                            (\duration -> updateDuration duration model)
+                        |> Maybe.withDefault model
+            in
+            { newModel | durationHours = s }
+
+        SetTotalTimeMinutes s ->
+            let
+                hoursValue =
+                    parseIntWithDefault model.durationHours
+
+                secondsValue =
+                    parseIntWithDefault model.durationSeconds
+
+                newModel =
+                    s
+                        |> String.toInt
+                        |> Maybe.map
+                            (\minutesValue ->
+                                hoursMinutesAndSeconds
+                                    hoursValue
+                                    minutesValue
+                                    secondsValue
+                            )
+                        |> Maybe.map
+                            (\duration -> updateDuration duration model)
+                        |> Maybe.withDefault model
+            in
+            { newModel | durationMinutes = s }
+
+        SetTotalTimeSeconds s ->
+            let
+                hoursValue =
+                    parseIntWithDefault model.durationHours
+
+                minutesValue =
+                    parseIntWithDefault model.durationMinutes
+
+                newModel =
+                    s
+                        |> String.toInt
+                        |> Maybe.map
+                            (\secondsValue ->
+                                hoursMinutesAndSeconds
+                                    hoursValue
+                                    minutesValue
+                                    secondsValue
+                            )
+                        |> Maybe.map
+                            (\duration -> updateDuration duration model)
+                        |> Maybe.withDefault model
+            in
+            { newModel | durationSeconds = s }
+
 
 updateDistance : Length -> Model -> Model
 updateDistance distance model =
@@ -197,6 +292,14 @@ updatePace pace form =
 
         speed =
             paceToSpeed pace
+
+        distance =
+            distanceFromKmString form.distanceInKilometers
+
+        ( durationHours, durationMinutes, durationSeconds ) =
+            durationFromDistanceAndPace distance pace
+                |> inSeconds
+                |> toHoursMinutesAndSeconds
     in
     { form
         | pacePerKmMinutes = String.fromInt pacePerKmMinutes
@@ -205,6 +308,9 @@ updatePace pace form =
         , pacePerMileSeconds = String.fromInt pacePerMileSeconds
         , speedInKmh = roundForDisplay <| inKilometersPerHour speed
         , speedInMph = roundForDisplay <| inMilesPerHour speed
+        , durationHours = String.fromInt durationHours
+        , durationMinutes = String.fromInt durationMinutes
+        , durationSeconds = String.fromInt durationSeconds
     }
 
 
@@ -219,6 +325,14 @@ updateSpeed speed form =
 
         ( pacePerMileMinutes, pacePerMileSeconds ) =
             inMinutesAndSecondsPerMile pace
+
+        distance =
+            distanceFromKmString form.distanceInKilometers
+
+        ( durationHours, durationMinutes, durationSeconds ) =
+            durationFromDistanceAndPace distance pace
+                |> inSeconds
+                |> toHoursMinutesAndSeconds
     in
     { form
         | pacePerKmMinutes = String.fromInt pacePerKmMinutes
@@ -227,7 +341,52 @@ updateSpeed speed form =
         , pacePerMileSeconds = String.fromInt pacePerMileSeconds
         , speedInKmh = roundForDisplay <| inKilometersPerHour speed
         , speedInMph = roundForDisplay <| inMilesPerHour speed
+        , durationHours = String.fromInt durationHours
+        , durationMinutes = String.fromInt durationMinutes
+        , durationSeconds = String.fromInt durationSeconds
     }
+
+
+updateDuration : Duration -> Model -> Model
+updateDuration newTotalTime form =
+    let
+        ( durationHours, durationMinutes, durationSeconds ) =
+            newTotalTime |> inSeconds |> toHoursMinutesAndSeconds
+
+        distance =
+            distanceFromKmString form.distanceInKilometers
+
+        pace =
+            paceFromDistanceAndDuration distance newTotalTime
+
+        speed =
+            paceToSpeed pace
+
+        ( pacePerKmMinutes, pacePerKmSeconds ) =
+            inMinutesAndSecondsPerKilometer pace
+
+        ( pacePerMileMinutes, pacePerMileSeconds ) =
+            inMinutesAndSecondsPerMile pace
+    in
+    { form
+        | pacePerKmMinutes = String.fromInt pacePerKmMinutes
+        , pacePerKmSeconds = String.fromInt pacePerKmSeconds
+        , pacePerMileMinutes = String.fromInt pacePerMileMinutes
+        , pacePerMileSeconds = String.fromInt pacePerMileSeconds
+        , speedInKmh = roundForDisplay <| inKilometersPerHour speed
+        , speedInMph = roundForDisplay <| inMilesPerHour speed
+        , durationHours = String.fromInt durationHours
+        , durationMinutes = String.fromInt durationMinutes
+        , durationSeconds = String.fromInt durationSeconds
+    }
+
+
+distanceFromKmString : String -> Length
+distanceFromKmString s =
+    s
+        |> String.toFloat
+        |> Maybe.withDefault 0
+        |> Length.kilometers
 
 
 view : Model -> Html Msg
@@ -317,11 +476,31 @@ view model =
             ]
         , div []
             [ label [] [ text "Total Time" ]
-            , input [ type_ "number" ] []
+            , input
+                [ type_ "number"
+                , value model.durationHours
+                , onInput SetTotalTimeHours
+                , Attr.min "0"
+                ]
+                []
             , span [] [ text "h" ]
-            , input [ type_ "number" ] []
+            , input
+                [ type_ "number"
+                , value model.durationMinutes
+                , onInput SetTotalTimeMinutes
+                , Attr.min "0"
+                , Attr.max "59"
+                ]
+                []
             , span [] [ text "m" ]
-            , input [ type_ "number" ] []
+            , input
+                [ type_ "number"
+                , value model.durationSeconds
+                , onInput SetTotalTimeSeconds
+                , Attr.min "0"
+                , Attr.max "59"
+                ]
+                []
             , span [] [ text "s" ]
             ]
         ]
@@ -349,6 +528,11 @@ type alias Pace =
 secondsPerMeter : Float -> Pace
 secondsPerMeter numSecondsPerMeter =
     Quantity.Quantity numSecondsPerMeter
+
+
+inSecondsPerMeter : Pace -> Float
+inSecondsPerMeter (Quantity.Quantity numSecondsPerMeter) =
+    numSecondsPerMeter
 
 
 minutesPerKilometer : Float -> Pace
@@ -388,6 +572,24 @@ inMinutesAndSecondsPerMile pace =
     pace |> inSecondsPerMile |> toMinutesAndSeconds
 
 
+paceFromDistanceAndDuration : Length -> Duration -> Pace
+paceFromDistanceAndDuration distance newTotalTime =
+    secondsPerMeter (inSeconds newTotalTime / inMeters distance)
+
+
+
+-- Duration
+
+
+durationFromDistanceAndPace : Length -> Pace -> Duration
+durationFromDistanceAndPace distance pace =
+    seconds <| inMeters distance * inSecondsPerMeter pace
+
+
+
+-- Conversion
+
+
 paceToSpeed : Pace -> Speed
 paceToSpeed (Quantity.Quantity numSecondsPerMeter) =
     metersPerSecond (1 / numSecondsPerMeter)
@@ -398,24 +600,53 @@ speedToPace (Quantity.Quantity numMetersPerSecond) =
     secondsPerMeter (1 / numMetersPerSecond)
 
 
+
+-- Duration
+
+
+hoursMinutesAndSeconds : Int -> Int -> Int -> Duration
+hoursMinutesAndSeconds hoursValue minutesValue secondsValue =
+    seconds <| toFloat (hoursValue * 3600 + minutesValue * 60 + secondsValue)
+
+
 toMinutesAndSeconds : Float -> ( Int, Int )
-toMinutesAndSeconds totalSeconds =
+toMinutesAndSeconds totalSecondsFloat =
     let
-        totalMinutes =
-            totalSeconds / 60
+        totalSeconds =
+            round totalSecondsFloat
 
         minutes =
-            floor totalMinutes
-
-        remainingMinutes =
-            (totalSeconds / 60) - toFloat minutes
+            totalSeconds // 60
 
         seconds =
-            round (remainingMinutes * 60)
+            totalSeconds - (minutes * 60)
     in
     ( minutes, seconds )
+
+
+toHoursMinutesAndSeconds : Float -> ( Int, Int, Int )
+toHoursMinutesAndSeconds totalSecondsFloat =
+    let
+        totalSeconds =
+            round totalSecondsFloat
+
+        hours =
+            totalSeconds // 3600
+
+        minutes =
+            (totalSeconds - (3600 * hours)) // 60
+
+        seconds =
+            totalSeconds - (3600 * hours) - (minutes * 60)
+    in
+    ( hours, minutes, seconds )
 
 
 mileInMeters : Float
 mileInMeters =
     5280 * 12 * 0.0254
+
+
+parseIntWithDefault : String -> Int
+parseIntWithDefault s =
+    s |> String.toInt |> Maybe.withDefault 0
