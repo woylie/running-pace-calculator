@@ -8,6 +8,15 @@ import Html.Events exposing (onInput)
 import Length exposing (Length, Meters)
 import Quantity exposing (Quantity, Rate)
 import Round
+import Speed
+    exposing
+        ( Speed
+        , inKilometersPerHour
+        , inMilesPerHour
+        , kilometersPerHour
+        , metersPerSecond
+        , milesPerHour
+        )
 
 
 main : Program () Model Msg
@@ -22,6 +31,8 @@ type alias Model =
     , pacePerKmSeconds : String
     , pacePerMileMinutes : String
     , pacePerMileSeconds : String
+    , speedInKmh : String
+    , speedInMph : String
     }
 
 
@@ -32,6 +43,8 @@ type Msg
     | SetPacePerKmSeconds String
     | SetPacePerMileMinutes String
     | SetPacePerMileSeconds String
+    | SetSpeedInKmh String
+    | SetSpeedInMph String
 
 
 init : Model
@@ -56,6 +69,8 @@ emptyModel =
     , pacePerKmSeconds = ""
     , pacePerMileMinutes = ""
     , pacePerMileSeconds = ""
+    , speedInKmh = ""
+    , speedInMph = ""
     }
 
 
@@ -140,6 +155,28 @@ update msg model =
             in
             { newModel | pacePerMileSeconds = s }
 
+        SetSpeedInKmh s ->
+            let
+                newModel =
+                    s
+                        |> String.toFloat
+                        |> Maybe.map kilometersPerHour
+                        |> Maybe.map (\speed -> updateSpeed speed model)
+                        |> Maybe.withDefault model
+            in
+            { newModel | speedInKmh = s }
+
+        SetSpeedInMph s ->
+            let
+                newModel =
+                    s
+                        |> String.toFloat
+                        |> Maybe.map milesPerHour
+                        |> Maybe.map (\speed -> updateSpeed speed model)
+                        |> Maybe.withDefault model
+            in
+            { newModel | speedInMph = s }
+
 
 updateDistance : Length -> Model -> Model
 updateDistance distance model =
@@ -157,12 +194,39 @@ updatePace pace form =
 
         ( pacePerMileMinutes, pacePerMileSeconds ) =
             inMinutesAndSecondsPerMile pace
+
+        speed =
+            paceToSpeed pace
     in
     { form
         | pacePerKmMinutes = String.fromInt pacePerKmMinutes
         , pacePerKmSeconds = String.fromInt pacePerKmSeconds
         , pacePerMileMinutes = String.fromInt pacePerMileMinutes
         , pacePerMileSeconds = String.fromInt pacePerMileSeconds
+        , speedInKmh = roundForDisplay <| inKilometersPerHour speed
+        , speedInMph = roundForDisplay <| inMilesPerHour speed
+    }
+
+
+updateSpeed : Speed -> Model -> Model
+updateSpeed speed form =
+    let
+        pace =
+            speedToPace speed
+
+        ( pacePerKmMinutes, pacePerKmSeconds ) =
+            inMinutesAndSecondsPerKilometer pace
+
+        ( pacePerMileMinutes, pacePerMileSeconds ) =
+            inMinutesAndSecondsPerMile pace
+    in
+    { form
+        | pacePerKmMinutes = String.fromInt pacePerKmMinutes
+        , pacePerKmSeconds = String.fromInt pacePerKmSeconds
+        , pacePerMileMinutes = String.fromInt pacePerMileMinutes
+        , pacePerMileSeconds = String.fromInt pacePerMileSeconds
+        , speedInKmh = roundForDisplay <| inKilometersPerHour speed
+        , speedInMph = roundForDisplay <| inMilesPerHour speed
     }
 
 
@@ -172,10 +236,10 @@ view model =
         [ div []
             [ label [ for "rpc-field-km" ] [ text "Distance in km" ]
             , input
-                [ type_ "number"
+                [ id "rpc-field-km"
+                , type_ "number"
                 , value model.distanceInKilometers
                 , onInput SetKilometers
-                , id "rpc-field-km"
                 , Attr.min "0"
                 ]
                 []
@@ -183,10 +247,10 @@ view model =
         , div []
             [ label [ for "rpc-field-miles" ] [ text "Distance in miles" ]
             , input
-                [ type_ "number"
+                [ id "rpc-field-miles"
+                , type_ "number"
                 , value model.distanceInMiles
                 , onInput SetMiles
-                , id "rpc-field-miles"
                 , Attr.min "0"
                 ]
                 []
@@ -195,18 +259,18 @@ view model =
             [ label [] [ text "Pace in min/km" ]
             , input
                 [ type_ "number"
-                , Attr.min "0"
                 , value model.pacePerKmMinutes
                 , onInput SetPacePerKmMinutes
+                , Attr.min "0"
                 ]
                 []
             , span [] [ text "m" ]
             , input
                 [ type_ "number"
-                , Attr.min "0"
-                , Attr.max "59"
                 , value model.pacePerKmSeconds
                 , onInput SetPacePerKmSeconds
+                , Attr.min "0"
+                , Attr.max "59"
                 ]
                 []
             , span [] [ text "s" ]
@@ -215,29 +279,41 @@ view model =
             [ label [] [ text "Pace in min/mi" ]
             , input
                 [ type_ "number"
-                , Attr.min "0"
                 , value model.pacePerMileMinutes
                 , onInput SetPacePerMileMinutes
+                , Attr.min "0"
                 ]
                 []
             , span [] [ text "m" ]
             , input
                 [ type_ "number"
-                , Attr.min "0"
-                , Attr.max "59"
                 , value model.pacePerMileSeconds
                 , onInput SetPacePerMileSeconds
+                , Attr.min "0"
+                , Attr.max "59"
                 ]
                 []
             , span [] [ text "s" ]
             ]
         , div []
             [ label [] [ text "Speed in km/h" ]
-            , input [ type_ "number" ] []
+            , input
+                [ type_ "number"
+                , value model.speedInKmh
+                , onInput SetSpeedInKmh
+                , Attr.min "0"
+                ]
+                []
             ]
         , div []
             [ label [] [ text "Speed in mi/h" ]
-            , input [ type_ "number" ] []
+            , input
+                [ type_ "number"
+                , value model.speedInMph
+                , onInput SetSpeedInMph
+                , Attr.min "0"
+                ]
+                []
             ]
         , div []
             [ label [] [ text "Total Time" ]
@@ -310,6 +386,16 @@ minutesAndSecondsPerMile minutes seconds =
 inMinutesAndSecondsPerMile : Pace -> ( Int, Int )
 inMinutesAndSecondsPerMile pace =
     pace |> inSecondsPerMile |> toMinutesAndSeconds
+
+
+paceToSpeed : Pace -> Speed
+paceToSpeed (Quantity.Quantity numSecondsPerMeter) =
+    metersPerSecond (1 / numSecondsPerMeter)
+
+
+speedToPace : Speed -> Pace
+speedToPace (Quantity.Quantity numMetersPerSecond) =
+    secondsPerMeter (1 / numMetersPerSecond)
 
 
 toMinutesAndSeconds : Float -> ( Int, Int )
