@@ -89,7 +89,11 @@ update msg model =
         SetKilometers s ->
             case String.toFloat s of
                 Just km ->
-                    updateDistance (Length.kilometers km) model
+                    let
+                        newModel =
+                            updateDistance (Length.kilometers (max km 0)) model
+                    in
+                    { newModel | distanceInKilometers = s }
 
                 Nothing ->
                     { model | distanceInKilometers = s }
@@ -97,7 +101,11 @@ update msg model =
         SetMiles s ->
             case String.toFloat s of
                 Just mi ->
-                    updateDistance (Length.miles mi) model
+                    let
+                        newModel =
+                            updateDistance (Length.miles mi) model
+                    in
+                    { newModel | distanceInMiles = s }
 
                 Nothing ->
                     { model | distanceInMiles = s }
@@ -110,7 +118,7 @@ update msg model =
                             parseIntWithDefault model.pacePerKmSeconds
                     in
                     updatePace
-                        (minutesAndSecondsPerKilometer minutes seconds)
+                        (minutesAndSecondsPerKilometer (max minutes 0) seconds)
                         model
 
                 Nothing ->
@@ -147,7 +155,7 @@ update msg model =
                             parseIntWithDefault model.pacePerMileSeconds
                     in
                     updatePace
-                        (minutesAndSecondsPerMile minutes seconds)
+                        (minutesAndSecondsPerMile (max minutes 0) seconds)
                         model
 
                 Nothing ->
@@ -162,10 +170,14 @@ update msg model =
 
                         pace =
                             if minutes == 0 then
-                                minutesAndSecondsPerMile minutes (max seconds 0)
+                                minutesAndSecondsPerMile
+                                    minutes
+                                    (max seconds 0)
 
                             else
-                                minutesAndSecondsPerMile minutes seconds
+                                minutesAndSecondsPerMile
+                                    minutes
+                                    seconds
                     in
                     updatePace pace model
 
@@ -175,7 +187,11 @@ update msg model =
         SetSpeedInKmh s ->
             case String.toFloat s of
                 Just value ->
-                    updateSpeed (kilometersPerHour value) model
+                    let
+                        newModel =
+                            updateSpeed (kilometersPerHour value) model
+                    in
+                    { newModel | speedInKmh = s }
 
                 Nothing ->
                     { model | speedInKmh = s }
@@ -183,7 +199,11 @@ update msg model =
         SetSpeedInMph s ->
             case String.toFloat s of
                 Just value ->
-                    updateSpeed (milesPerHour value) model
+                    let
+                        newModel =
+                            updateSpeed (milesPerHour value) model
+                    in
+                    { newModel | speedInMph = s }
 
                 Nothing ->
                     { model | speedInMph = s }
@@ -200,7 +220,7 @@ update msg model =
                     in
                     updateDuration
                         (hoursMinutesAndSeconds
-                            hoursValue
+                            (max hoursValue 0)
                             minutesValue
                             secondsValue
                         )
