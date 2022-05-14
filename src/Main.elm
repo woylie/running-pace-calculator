@@ -87,190 +87,183 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         SetKilometers s ->
-            let
-                newModel =
-                    s
-                        |> String.toFloat
-                        |> Maybe.map Length.kilometers
-                        |> Maybe.map
-                            (\distance -> updateDistance distance model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | distanceInKilometers = s }
+            case String.toFloat s of
+                Just km ->
+                    updateDistance (Length.kilometers km) model
+
+                Nothing ->
+                    { model | distanceInKilometers = s }
 
         SetMiles s ->
-            let
-                newModel =
-                    s
-                        |> String.toFloat
-                        |> Maybe.map Length.miles
-                        |> Maybe.map
-                            (\distance -> updateDistance distance model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | distanceInMiles = s }
+            case String.toFloat s of
+                Just mi ->
+                    updateDistance (Length.miles mi) model
+
+                Nothing ->
+                    { model | distanceInMiles = s }
 
         SetPacePerKmMinutes s ->
-            let
-                seconds =
-                    parseIntWithDefault model.pacePerKmSeconds
+            case String.toInt s of
+                Just minutes ->
+                    let
+                        seconds =
+                            parseIntWithDefault model.pacePerKmSeconds
+                    in
+                    updatePace
+                        (minutesAndSecondsPerKilometer minutes seconds)
+                        model
 
-                newModel =
-                    s
-                        |> String.toInt
-                        |> Maybe.map
-                            (\minutes ->
-                                minutesAndSecondsPerKilometer minutes seconds
-                            )
-                        |> Maybe.map (\pace -> updatePace pace model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | pacePerKmMinutes = s }
+                Nothing ->
+                    { model | pacePerKmMinutes = s }
 
         SetPacePerKmSeconds s ->
-            let
-                minutes =
-                    parseIntWithDefault model.pacePerKmMinutes
+            case String.toInt s of
+                Just seconds ->
+                    let
+                        minutes =
+                            parseIntWithDefault model.pacePerKmMinutes
 
-                newModel =
-                    s
-                        |> String.toInt
-                        |> Maybe.map
-                            (\seconds ->
-                                minutesAndSecondsPerKilometer minutes seconds
-                            )
-                        |> Maybe.map (\pace -> updatePace pace model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | pacePerKmSeconds = s }
+                        pace =
+                            if minutes == 0 then
+                                minutesAndSecondsPerKilometer
+                                    minutes
+                                    (max seconds 0)
+
+                            else
+                                minutesAndSecondsPerKilometer
+                                    minutes
+                                    seconds
+                    in
+                    updatePace pace model
+
+                Nothing ->
+                    { model | pacePerKmSeconds = s }
 
         SetPacePerMileMinutes s ->
-            let
-                seconds =
-                    parseIntWithDefault model.pacePerMileSeconds
+            case String.toInt s of
+                Just minutes ->
+                    let
+                        seconds =
+                            parseIntWithDefault model.pacePerMileSeconds
+                    in
+                    updatePace
+                        (minutesAndSecondsPerMile minutes seconds)
+                        model
 
-                newModel =
-                    s
-                        |> String.toInt
-                        |> Maybe.map
-                            (\minutes ->
-                                minutesAndSecondsPerMile minutes seconds
-                            )
-                        |> Maybe.map (\pace -> updatePace pace model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | pacePerMileMinutes = s }
+                Nothing ->
+                    { model | pacePerMileMinutes = s }
 
         SetPacePerMileSeconds s ->
-            let
-                minutes =
-                    parseIntWithDefault model.pacePerMileMinutes
+            case String.toInt s of
+                Just seconds ->
+                    let
+                        minutes =
+                            parseIntWithDefault model.pacePerMileMinutes
 
-                newModel =
-                    s
-                        |> String.toInt
-                        |> Maybe.map
-                            (\seconds ->
+                        pace =
+                            if minutes == 0 then
+                                minutesAndSecondsPerMile minutes (max seconds 0)
+
+                            else
                                 minutesAndSecondsPerMile minutes seconds
-                            )
-                        |> Maybe.map (\pace -> updatePace pace model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | pacePerMileSeconds = s }
+                    in
+                    updatePace pace model
+
+                Nothing ->
+                    { model | pacePerMileSeconds = s }
 
         SetSpeedInKmh s ->
-            let
-                newModel =
-                    s
-                        |> String.toFloat
-                        |> Maybe.map kilometersPerHour
-                        |> Maybe.map (\speed -> updateSpeed speed model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | speedInKmh = s }
+            case String.toFloat s of
+                Just value ->
+                    updateSpeed (kilometersPerHour value) model
+
+                Nothing ->
+                    { model | speedInKmh = s }
 
         SetSpeedInMph s ->
-            let
-                newModel =
-                    s
-                        |> String.toFloat
-                        |> Maybe.map milesPerHour
-                        |> Maybe.map (\speed -> updateSpeed speed model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | speedInMph = s }
+            case String.toFloat s of
+                Just value ->
+                    updateSpeed (milesPerHour value) model
+
+                Nothing ->
+                    { model | speedInMph = s }
 
         SetTotalTimeHours s ->
-            let
-                minutesValue =
-                    parseIntWithDefault model.durationMinutes
+            case String.toInt s of
+                Just hoursValue ->
+                    let
+                        minutesValue =
+                            parseIntWithDefault model.durationMinutes
 
-                secondsValue =
-                    parseIntWithDefault model.durationSeconds
+                        secondsValue =
+                            parseIntWithDefault model.durationSeconds
+                    in
+                    updateDuration
+                        (hoursMinutesAndSeconds
+                            hoursValue
+                            minutesValue
+                            secondsValue
+                        )
+                        model
 
-                newModel =
-                    s
-                        |> String.toInt
-                        |> Maybe.map
-                            (\hoursValue ->
-                                hoursMinutesAndSeconds
-                                    hoursValue
-                                    minutesValue
-                                    secondsValue
-                            )
-                        |> Maybe.map
-                            (\duration -> updateDuration duration model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | durationHours = s }
+                Nothing ->
+                    { model | durationHours = s }
 
         SetTotalTimeMinutes s ->
-            let
-                hoursValue =
-                    parseIntWithDefault model.durationHours
+            case String.toInt s of
+                Just minutesValue ->
+                    let
+                        hoursValue =
+                            parseIntWithDefault model.durationHours
 
-                secondsValue =
-                    parseIntWithDefault model.durationSeconds
+                        secondsValue =
+                            parseIntWithDefault model.durationSeconds
 
-                newModel =
-                    s
-                        |> String.toInt
-                        |> Maybe.map
-                            (\minutesValue ->
+                        duration =
+                            if hoursValue == 0 then
+                                hoursMinutesAndSeconds
+                                    hoursValue
+                                    (max minutesValue 0)
+                                    secondsValue
+
+                            else
                                 hoursMinutesAndSeconds
                                     hoursValue
                                     minutesValue
                                     secondsValue
-                            )
-                        |> Maybe.map
-                            (\duration -> updateDuration duration model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | durationMinutes = s }
+                    in
+                    updateDuration duration model
+
+                Nothing ->
+                    { model | durationMinutes = s }
 
         SetTotalTimeSeconds s ->
-            let
-                hoursValue =
-                    parseIntWithDefault model.durationHours
+            case String.toInt s of
+                Just secondsValue ->
+                    let
+                        hoursValue =
+                            parseIntWithDefault model.durationHours
 
-                minutesValue =
-                    parseIntWithDefault model.durationMinutes
+                        minutesValue =
+                            parseIntWithDefault model.durationMinutes
 
-                newModel =
-                    s
-                        |> String.toInt
-                        |> Maybe.map
-                            (\secondsValue ->
+                        duration =
+                            if hoursValue == 0 && minutesValue == 0 then
+                                hoursMinutesAndSeconds
+                                    hoursValue
+                                    minutesValue
+                                    (max secondsValue 0)
+
+                            else
                                 hoursMinutesAndSeconds
                                     hoursValue
                                     minutesValue
                                     secondsValue
-                            )
-                        |> Maybe.map
-                            (\duration -> updateDuration duration model)
-                        |> Maybe.withDefault model
-            in
-            { newModel | durationSeconds = s }
+                    in
+                    updateDuration duration model
+
+                Nothing ->
+                    { model | durationSeconds = s }
 
 
 updateDistance : Length -> Model -> Model
@@ -442,8 +435,6 @@ view model =
                 [ type_ "number"
                 , value model.pacePerKmSeconds
                 , onInput SetPacePerKmSeconds
-                , Attr.min "0"
-                , Attr.max "59"
                 ]
                 []
             , span [] [ text "s" ]
@@ -462,8 +453,6 @@ view model =
                 [ type_ "number"
                 , value model.pacePerMileSeconds
                 , onInput SetPacePerMileSeconds
-                , Attr.min "0"
-                , Attr.max "59"
                 ]
                 []
             , span [] [ text "s" ]
@@ -502,8 +491,6 @@ view model =
                 [ type_ "number"
                 , value model.durationMinutes
                 , onInput SetTotalTimeMinutes
-                , Attr.min "0"
-                , Attr.max "59"
                 ]
                 []
             , span [] [ text "m" ]
@@ -511,8 +498,6 @@ view model =
                 [ type_ "number"
                 , value model.durationSeconds
                 , onInput SetTotalTimeSeconds
-                , Attr.min "0"
-                , Attr.max "59"
                 ]
                 []
             , span [] [ text "s" ]
