@@ -9180,6 +9180,16 @@ var $rtfeldman$elm_css$Html$Styled$Attributes$boolProperty = F2(
 			$elm$json$Json$Encode$bool(bool));
 	});
 var $rtfeldman$elm_css$Html$Styled$Attributes$selected = $rtfeldman$elm_css$Html$Styled$Attributes$boolProperty('selected');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $rtfeldman$elm_css$VirtualDom$Styled$style = F2(
+	function (key, val) {
+		return A3(
+			$rtfeldman$elm_css$VirtualDom$Styled$Attribute,
+			A2($elm$virtual_dom$VirtualDom$style, key, val),
+			false,
+			'');
+	});
+var $rtfeldman$elm_css$Html$Styled$Attributes$style = $rtfeldman$elm_css$VirtualDom$Styled$style;
 var $rtfeldman$elm_css$Html$Styled$Attributes$value = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('value');
 var $author$project$Components$select = F4(
 	function (inputId, currentValue, msg, options) {
@@ -9205,7 +9215,10 @@ var $author$project$Components$select = F4(
 				[
 					$rtfeldman$elm_css$Html$Styled$Attributes$id(inputId),
 					$rtfeldman$elm_css$Html$Styled$Events$onInput(msg),
-					$rtfeldman$elm_css$Html$Styled$Attributes$css($author$project$Components$inputCss)
+					$rtfeldman$elm_css$Html$Styled$Attributes$css($author$project$Components$inputCss),
+					A2($rtfeldman$elm_css$Html$Styled$Attributes$style, '-webkit-appearance', 'none'),
+					A2($rtfeldman$elm_css$Html$Styled$Attributes$style, '-moz-appearance', 'none'),
+					A2($rtfeldman$elm_css$Html$Styled$Attributes$style, 'appearance', 'none')
 				]),
 			A2(
 				$elm$core$List$cons,
@@ -9300,16 +9313,6 @@ var $rtfeldman$elm_css$Css$displayFlex = A2($rtfeldman$elm_css$Css$property, 'di
 var $rtfeldman$elm_css$Html$Styled$fieldset = $rtfeldman$elm_css$Html$Styled$node('fieldset');
 var $rtfeldman$elm_css$Css$flexWrap = $rtfeldman$elm_css$Css$prop1('flex-wrap');
 var $rtfeldman$elm_css$Html$Styled$legend = $rtfeldman$elm_css$Html$Styled$node('legend');
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $rtfeldman$elm_css$VirtualDom$Styled$style = F2(
-	function (key, val) {
-		return A3(
-			$rtfeldman$elm_css$VirtualDom$Styled$Attribute,
-			A2($elm$virtual_dom$VirtualDom$style, key, val),
-			false,
-			'');
-	});
-var $rtfeldman$elm_css$Html$Styled$Attributes$style = $rtfeldman$elm_css$VirtualDom$Styled$style;
 var $rtfeldman$elm_css$Css$wrap = {aE: 0, aU: 0, E: 'wrap'};
 var $author$project$Components$fieldset = F2(
 	function (legendText, content) {
