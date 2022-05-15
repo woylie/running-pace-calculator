@@ -168,7 +168,15 @@ select inputId currentValue msg options =
                 ]
                 [ text optionText ]
     in
-    Html.select [ id inputId, onInput msg, css inputCss ] <|
+    Html.select
+        [ id inputId
+        , onInput msg
+        , css inputCss
+        , style "-webkit-appearance" "none"
+        , style "-moz-appearance" "none"
+        , style "appearance" "none"
+        ]
+    <|
         Html.option [] []
             :: List.map option options
 
