@@ -178,21 +178,14 @@ container content =
     Html.section
         [ css
             [ fontFamilies defaultFontFamily
-            , padding (rem 1.5)
+            , padding (rem 0)
             , lineHeight (rem 1.5)
             , color (hex "202c31")
             , maxWidth (ch 65)
             ]
         ]
     <|
-        Html.h1
-            [ css
-                [ fontSize (rem 1.5)
-                , fontWeight (int 400)
-                ]
-            ]
-            [ text "Running Pace Calculator" ]
-            :: content
+        content
             ++ [ footer ]
 
 
