@@ -1,12 +1,17 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
+import Components
+import Css exposing (right)
 import Distance exposing (Distance(..))
 import Duration exposing (Duration, inSeconds)
 import Hms
-import Html exposing (Html, div, input, label, option, select, span, text)
-import Html.Attributes as Attr exposing (for, id, selected, type_, value)
-import Html.Events exposing (onInput)
+import Html.Styled
+    exposing
+        ( Html
+        , select
+        , toUnstyled
+        )
 import Length exposing (Length, inKilometers, inMiles, kilometers, miles)
 import Pace exposing (Pace, paceFromDistanceAndDuration)
 import Round
@@ -22,7 +27,7 @@ import Speed
 
 main : Program () Model Msg
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.sandbox { init = init, update = update, view = view >> toUnstyled }
 
 
 type alias Model =
@@ -440,113 +445,108 @@ updateDuration newTotalTime model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ div []
-            [ label [ for "rpc-field-km" ] [ text "Distance in km" ]
-            , input
-                [ id "rpc-field-km"
-                , type_ "number"
-                , value model.distanceInKilometers
-                , onInput SetKilometers
-                , Attr.min "0"
+    Components.container
+        [ Components.fieldset "Distance"
+            [ Components.field "rpc-field-km"
+                "Distance in km"
+                [ Components.numberInput
+                    "rpc-field-km"
+                    model.distanceInKilometers
+                    SetKilometers
+                    (Just 0)
                 ]
-                []
+            , Components.field "rpc-field-miles"
+                "Distance in miles"
+                [ Components.numberInput
+                    "rpc-field-miles"
+                    model.distanceInMiles
+                    SetMiles
+                    (Just 0)
+                ]
+            , Components.field "rpc-field-distance"
+                "Distance preset"
+                [ distanceSelect model.distanceSelected
+                ]
             ]
-        , div []
-            [ label [ for "rpc-field-miles" ] [ text "Distance in miles" ]
-            , input
-                [ id "rpc-field-miles"
-                , type_ "number"
-                , value model.distanceInMiles
-                , onInput SetMiles
-                , Attr.min "0"
+        , Components.fieldset "Pace in min/km"
+            [ Components.field "rpc-field-pace-km-minutes"
+                "Minutes"
+                [ Components.numberInput
+                    "rpc-field-pace-km-minutes"
+                    model.pacePerKmMinutes
+                    SetPacePerKmMinutes
+                    (Just 0)
                 ]
-                []
+            , Components.field "rpc-field-pace-km-seconds"
+                "Seconds"
+                [ Components.numberInput
+                    "rpc-field-pace-km-seconds"
+                    model.pacePerKmSeconds
+                    SetPacePerKmSeconds
+                    Nothing
+                ]
             ]
-        , div []
-            [ label [] [ text "Distance" ]
-            , distanceSelect model.distanceSelected
+        , Components.fieldset "Pace in min/mi"
+            [ Components.field "rpc-field-pace-mi-minutes"
+                "Minutes"
+                [ Components.numberInput
+                    "rpc-field-pace-mi-minutes"
+                    model.pacePerMileMinutes
+                    SetPacePerMileMinutes
+                    (Just 0)
+                ]
+            , Components.field "rpc-field-pace-mi-seconds"
+                "Seconds"
+                [ Components.numberInput
+                    "rpc-field-pace-mi-seconds"
+                    model.pacePerMileSeconds
+                    SetPacePerMileSeconds
+                    Nothing
+                ]
             ]
-        , div []
-            [ label [] [ text "Pace in min/km" ]
-            , input
-                [ type_ "number"
-                , value model.pacePerKmMinutes
-                , onInput SetPacePerKmMinutes
-                , Attr.min "0"
+        , Components.fieldset "Speed"
+            [ Components.field "rpc-field-speed-kmh"
+                "Speed in km/h"
+                [ Components.numberInput
+                    "rpc-field-speed-kmh"
+                    model.speedInKmh
+                    SetSpeedInKmh
+                    (Just 0)
                 ]
-                []
-            , span [] [ text "m" ]
-            , input
-                [ type_ "number"
-                , value model.pacePerKmSeconds
-                , onInput SetPacePerKmSeconds
+            , Components.field "rpc-field-speed-mih"
+                "Speed in mi/h"
+                [ Components.numberInput
+                    "rpc-field-speed-mih"
+                    model.speedInMph
+                    SetSpeedInMph
+                    (Just 0)
                 ]
-                []
-            , span [] [ text "s" ]
             ]
-        , div []
-            [ label [] [ text "Pace in min/mi" ]
-            , input
-                [ type_ "number"
-                , value model.pacePerMileMinutes
-                , onInput SetPacePerMileMinutes
-                , Attr.min "0"
+        , Components.fieldset "Total Time"
+            [ Components.field "rpc-field-duration-hours"
+                "Hours"
+                [ Components.numberInput
+                    "rpc-field-duration-hours"
+                    model.durationHours
+                    SetTotalTimeHours
+                    (Just 0)
                 ]
-                []
-            , span [] [ text "m" ]
-            , input
-                [ type_ "number"
-                , value model.pacePerMileSeconds
-                , onInput SetPacePerMileSeconds
+            , Components.field "rpc-field-duration-minutes"
+                "Minutes"
+                [ Components.numberInput
+                    "rpc-field-duration-minutes"
+                    model.durationMinutes
+                    SetTotalTimeMinutes
+                    Nothing
                 ]
-                []
-            , span [] [ text "s" ]
-            ]
-        , div []
-            [ label [] [ text "Speed in km/h" ]
-            , input
-                [ type_ "number"
-                , value model.speedInKmh
-                , onInput SetSpeedInKmh
-                , Attr.min "0"
+            , Components.field "rpc-field-duration-seconds"
+                "Seconds"
+                [ Components.numberInput
+                    "rpc-field-duration-seconds"
+                    model.durationSeconds
+                    SetTotalTimeSeconds
+                    Nothing
                 ]
-                []
-            ]
-        , div []
-            [ label [] [ text "Speed in mi/h" ]
-            , input
-                [ type_ "number"
-                , value model.speedInMph
-                , onInput SetSpeedInMph
-                , Attr.min "0"
-                ]
-                []
-            ]
-        , div []
-            [ label [] [ text "Total Time" ]
-            , input
-                [ type_ "number"
-                , value model.durationHours
-                , onInput SetTotalTimeHours
-                , Attr.min "0"
-                ]
-                []
-            , span [] [ text "h" ]
-            , input
-                [ type_ "number"
-                , value model.durationMinutes
-                , onInput SetTotalTimeMinutes
-                ]
-                []
-            , span [] [ text "m" ]
-            , input
-                [ type_ "number"
-                , value model.durationSeconds
-                , onInput SetTotalTimeSeconds
-                ]
-                []
-            , span [] [ text "s" ]
             ]
         ]
 
@@ -554,17 +554,18 @@ view model =
 distanceSelect : Distance -> Html Msg
 distanceSelect distanceSelected =
     let
-        distanceOption : Distance -> Html Msg
-        distanceOption distance =
-            option
-                [ selected (distanceSelected == distance)
-                , value <| Distance.toString distance
-                ]
-                [ text <| Distance.toString distance ]
+        toOption : Distance -> ( String, String )
+        toOption distance =
+            ( Distance.toString distance, Distance.toString distance )
+
+        options : List ( String, String )
+        options =
+            List.map toOption Distance.distances
     in
-    select [ onInput (SetDistance << Distance.fromString) ] <|
-        [ option [] [] ]
-            ++ List.map distanceOption Distance.distances
+    Components.select
+        (Distance.toString distanceSelected)
+        (SetDistance << Distance.fromString)
+        options
 
 
 roundForDisplay : Float -> String
