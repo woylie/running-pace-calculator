@@ -7,7 +7,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "analyse": "elm-analyse -s",
-    "build": "elm make src/Main.elm --optimize --output=./dist/running-pace-calculator.js",
+    "build": "elm make src/Main.elm --optimize --output=./public/running-pace-calculator.js",
     "format": "elm-format src/",
     "watch": "elm-live src/Main.elm"
   },
