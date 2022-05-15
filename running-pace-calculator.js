@@ -8487,10 +8487,6 @@ var $rtfeldman$elm_css$Css$fontFamilies = A2(
 	$rtfeldman$elm_css$Css$prop1('font-family'),
 	$rtfeldman$elm_css$Css$stringsToValue);
 var $rtfeldman$elm_css$Css$fontSize = $rtfeldman$elm_css$Css$prop1('font-size');
-var $rtfeldman$elm_css$Css$fontWeight = function (_v0) {
-	var value = _v0.E;
-	return A2($rtfeldman$elm_css$Css$property, 'font-weight', value);
-};
 var $rtfeldman$elm_css$VirtualDom$Styled$Node = F3(
 	function (a, b, c) {
 		return {$: 0, a: a, b: b, c: c};
@@ -9023,22 +9019,6 @@ var $author$project$Components$footer = A2(
 			$rtfeldman$elm_css$Html$Styled$text(' | '),
 			A2($author$project$Components$link, 'https://github.com/woylie/running-pace-calculator', 'view source on Github')
 		]));
-var $rtfeldman$elm_css$Html$Styled$h1 = $rtfeldman$elm_css$Html$Styled$node('h1');
-var $rtfeldman$elm_css$Css$UnitlessInteger = 0;
-var $rtfeldman$elm_css$Css$int = function (val) {
-	return {
-		K: 0,
-		aV: 0,
-		Z: 0,
-		A: 0,
-		aI: 0,
-		aX: 0,
-		N: val,
-		ay: '',
-		aP: 0,
-		E: $elm$core$String$fromInt(val)
-	};
-};
 var $rtfeldman$elm_css$Css$lineHeight = $rtfeldman$elm_css$Css$prop1('line-height');
 var $rtfeldman$elm_css$Css$maxWidth = $rtfeldman$elm_css$Css$prop1('max-width');
 var $rtfeldman$elm_css$Css$padding = $rtfeldman$elm_css$Css$prop1('padding');
@@ -9053,7 +9033,7 @@ var $author$project$Components$container = function (content) {
 					[
 						$rtfeldman$elm_css$Css$fontFamilies($author$project$Components$defaultFontFamily),
 						$rtfeldman$elm_css$Css$padding(
-						$rtfeldman$elm_css$Css$rem(1.5)),
+						$rtfeldman$elm_css$Css$rem(0)),
 						$rtfeldman$elm_css$Css$lineHeight(
 						$rtfeldman$elm_css$Css$rem(1.5)),
 						$rtfeldman$elm_css$Css$color(
@@ -9062,29 +9042,10 @@ var $author$project$Components$container = function (content) {
 						$rtfeldman$elm_css$Css$ch(65))
 					]))
 			]),
-		A2(
-			$elm$core$List$cons,
-			A2(
-				$rtfeldman$elm_css$Html$Styled$h1,
-				_List_fromArray(
-					[
-						$rtfeldman$elm_css$Html$Styled$Attributes$css(
-						_List_fromArray(
-							[
-								$rtfeldman$elm_css$Css$fontSize(
-								$rtfeldman$elm_css$Css$rem(1.5)),
-								$rtfeldman$elm_css$Css$fontWeight(
-								$rtfeldman$elm_css$Css$int(400))
-							]))
-					]),
-				_List_fromArray(
-					[
-						$rtfeldman$elm_css$Html$Styled$text('Running Pace Calculator')
-					])),
-			_Utils_ap(
-				content,
-				_List_fromArray(
-					[$author$project$Components$footer]))));
+		_Utils_ap(
+			content,
+			_List_fromArray(
+				[$author$project$Components$footer])));
 };
 var $author$project$Main$SetDistance = function (a) {
 	return {$: 2, a: a};
@@ -9265,7 +9226,26 @@ var $author$project$Main$distanceSelect = function (distanceSelected) {
 var $rtfeldman$elm_css$Html$Styled$div = $rtfeldman$elm_css$Html$Styled$node('div');
 var $rtfeldman$elm_css$Css$block = {f: 0, E: 'block'};
 var $rtfeldman$elm_css$Css$display = $rtfeldman$elm_css$Css$prop1('display');
+var $rtfeldman$elm_css$Css$fontWeight = function (_v0) {
+	var value = _v0.E;
+	return A2($rtfeldman$elm_css$Css$property, 'font-weight', value);
+};
 var $rtfeldman$elm_css$Html$Styled$Attributes$for = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('htmlFor');
+var $rtfeldman$elm_css$Css$UnitlessInteger = 0;
+var $rtfeldman$elm_css$Css$int = function (val) {
+	return {
+		K: 0,
+		aV: 0,
+		Z: 0,
+		A: 0,
+		aI: 0,
+		aX: 0,
+		N: val,
+		ay: '',
+		aP: 0,
+		E: $elm$core$String$fromInt(val)
+	};
+};
 var $rtfeldman$elm_css$Html$Styled$label = $rtfeldman$elm_css$Html$Styled$node('label');
 var $author$project$Components$label = F2(
 	function (inputId, labelText) {
