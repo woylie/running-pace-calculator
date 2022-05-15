@@ -185,22 +185,40 @@ container content =
             ]
         ]
     <|
-        content
+        Html.h1
+            [ css
+                [ fontSize (rem 1.5)
+                , fontWeight (int 400)
+                ]
+            ]
+            [ text "Running Pace Calculator" ]
+            :: content
             ++ [ footer ]
 
 
 footer : Html msg
 footer =
     Html.footer
-        [ css [ textAlign right ] ]
-        [ a
-            [ href "https://github.com/woylie/running-pace-calculator"
-            , target "_blank"
-            , css
-                [ fontSize (rem 0.75)
-                , color (hex "202c31")
-                , hover [ color (hex "71819c") ]
-                ]
+        [ css [ textAlign right, fontSize (rem 0.75) ] ]
+        [ link "https://www.mathiaspolligkeit.com"
+            "mathiaspolligkeit.com"
+        , text " | "
+        , link "https://github.com/woylie/running-pace-calculator"
+            "view source on Github"
+        ]
+
+
+link : String -> String -> Html msg
+link url linkText =
+    Html.a
+        [ href url
+        , target "_blank"
+        , css
+            [ fontSize (rem 0.75)
+            , color (hex "202c31")
+            , hover [ color (hex "71819c") ]
             ]
-            [ text "view source on Github" ]
+        ]
+        [ a [] []
+        , text linkText
         ]
