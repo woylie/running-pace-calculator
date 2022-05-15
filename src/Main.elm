@@ -465,7 +465,7 @@ view model =
                 ]
             , Components.field "rpc-field-distance"
                 "Distance preset"
-                [ distanceSelect model.distanceSelected
+                [ distanceSelect "rpc-field-distance" model.distanceSelected
                 ]
             ]
         , Components.fieldset "Pace in min/km"
@@ -551,8 +551,8 @@ view model =
         ]
 
 
-distanceSelect : Distance -> Html Msg
-distanceSelect distanceSelected =
+distanceSelect : String -> Distance -> Html Msg
+distanceSelect inputId distanceSelected =
     let
         toOption : Distance -> ( String, String )
         toOption distance =
@@ -563,6 +563,7 @@ distanceSelect distanceSelected =
             List.map toOption Distance.distances
     in
     Components.select
+        inputId
         (Distance.toString distanceSelected)
         (SetDistance << Distance.fromString)
         options

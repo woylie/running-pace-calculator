@@ -157,8 +157,8 @@ numberInput inputId currentValue event minValue =
         []
 
 
-select : String -> (String -> msg) -> List ( String, String ) -> Html msg
-select currentValue msg options =
+select : String -> String -> (String -> msg) -> List ( String, String ) -> Html msg
+select inputId currentValue msg options =
     let
         option : ( String, String ) -> Html msg
         option ( optionValue, optionText ) =
@@ -168,7 +168,7 @@ select currentValue msg options =
                 ]
                 [ text optionText ]
     in
-    Html.select [ onInput msg, css inputCss ] <|
+    Html.select [ id inputId, onInput msg, css inputCss ] <|
         Html.option [] []
             :: List.map option options
 
