@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "https://github.com/woylie/running-pace-calculator",
   "author": "Mathias Polligkeit",
-  "license": "AGPL-3.0-or-later",
+  "license": "Apache-2.0",
   "scripts": {
     "analyse": "elm-analyse -s",
     "build": "elm make src/Main.elm --optimize --output=./public/running-pace-calculator.js",
