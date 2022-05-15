@@ -1,12 +1,14 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Duration exposing (Duration, Seconds, inSeconds, seconds)
-import Html exposing (Html, div, input, label, span, text)
-import Html.Attributes as Attr exposing (for, id, type_, value)
+import Distance exposing (Distance(..))
+import Duration exposing (Duration, inSeconds)
+import Hms
+import Html exposing (Html, div, input, label, option, select, span, text)
+import Html.Attributes as Attr exposing (for, id, selected, type_, value)
 import Html.Events exposing (onInput)
-import Length exposing (Length, Meters, inMeters)
-import Quantity exposing (Quantity, Rate)
+import Length exposing (Length, inKilometers, inMiles, kilometers, miles)
+import Pace exposing (Pace, paceFromDistanceAndDuration)
 import Round
 import Speed
     exposing
@@ -14,7 +16,6 @@ import Speed
         , inKilometersPerHour
         , inMilesPerHour
         , kilometersPerHour
-        , metersPerSecond
         , milesPerHour
         )
 
@@ -27,6 +28,7 @@ main =
 type alias Model =
     { distanceInKilometers : String
     , distanceInMiles : String
+    , distanceSelected : Distance
     , pacePerKmMinutes : String
     , pacePerKmSeconds : String
     , pacePerMileMinutes : String
@@ -42,6 +44,7 @@ type alias Model =
 type Msg
     = SetKilometers String
     | SetMiles String
+    | SetDistance (Maybe Distance)
     | SetPacePerKmMinutes String
     | SetPacePerKmSeconds String
     | SetPacePerMileMinutes String
@@ -60,7 +63,7 @@ init =
             Length.kilometers 10
 
         pace =
-            minutesPerKilometer 6
+            Pace.minutesPerKilometer 6
     in
     emptyModel
         |> updateDistance distance
@@ -71,6 +74,7 @@ emptyModel : Model
 emptyModel =
     { distanceInKilometers = ""
     , distanceInMiles = ""
+    , distanceSelected = Distance (Length.kilometers 0)
     , pacePerKmMinutes = ""
     , pacePerKmSeconds = ""
     , pacePerMileMinutes = ""
@@ -86,6 +90,22 @@ emptyModel =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
+        SetDistance maybeDistance ->
+            case maybeDistance of
+                Just distance ->
+                    updateDistance (Distance.toLength distance) model
+
+                Nothing ->
+                    let
+                        distanceSelected =
+                            model.distanceInKilometers
+                                |> String.toFloat
+                                |> Maybe.withDefault 0
+                                |> Length.kilometers
+                                |> Distance
+                    in
+                    { model | distanceSelected = distanceSelected }
+
         SetKilometers s ->
             case String.toFloat s of
                 Just km ->
@@ -115,10 +135,13 @@ update msg model =
                 Just minutes ->
                     let
                         seconds =
-                            parseIntWithDefault model.pacePerKmSeconds
+                            toIntWithDefault model.pacePerKmSeconds
                     in
                     updatePace
-                        (minutesAndSecondsPerKilometer (max minutes 0) seconds)
+                        (Pace.minutesAndSecondsPerKilometer
+                            (max minutes 0)
+                            seconds
+                        )
                         model
 
                 Nothing ->
@@ -129,16 +152,16 @@ update msg model =
                 Just seconds ->
                     let
                         minutes =
-                            parseIntWithDefault model.pacePerKmMinutes
+                            toIntWithDefault model.pacePerKmMinutes
 
                         pace =
                             if minutes == 0 then
-                                minutesAndSecondsPerKilometer
+                                Pace.minutesAndSecondsPerKilometer
                                     minutes
                                     (max seconds 0)
 
                             else
-                                minutesAndSecondsPerKilometer
+                                Pace.minutesAndSecondsPerKilometer
                                     minutes
                                     seconds
                     in
@@ -152,10 +175,10 @@ update msg model =
                 Just minutes ->
                     let
                         seconds =
-                            parseIntWithDefault model.pacePerMileSeconds
+                            toIntWithDefault model.pacePerMileSeconds
                     in
                     updatePace
-                        (minutesAndSecondsPerMile (max minutes 0) seconds)
+                        (Pace.minutesAndSecondsPerMile (max minutes 0) seconds)
                         model
 
                 Nothing ->
@@ -166,16 +189,16 @@ update msg model =
                 Just seconds ->
                     let
                         minutes =
-                            parseIntWithDefault model.pacePerMileMinutes
+                            toIntWithDefault model.pacePerMileMinutes
 
                         pace =
                             if minutes == 0 then
-                                minutesAndSecondsPerMile
+                                Pace.minutesAndSecondsPerMile
                                     minutes
                                     (max seconds 0)
 
                             else
-                                minutesAndSecondsPerMile
+                                Pace.minutesAndSecondsPerMile
                                     minutes
                                     seconds
                     in
@@ -213,13 +236,13 @@ update msg model =
                 Just hoursValue ->
                     let
                         minutesValue =
-                            parseIntWithDefault model.durationMinutes
+                            toIntWithDefault model.durationMinutes
 
                         secondsValue =
-                            parseIntWithDefault model.durationSeconds
+                            toIntWithDefault model.durationSeconds
                     in
                     updateDuration
-                        (hoursMinutesAndSeconds
+                        (Hms.hoursMinutesAndSeconds
                             (max hoursValue 0)
                             minutesValue
                             secondsValue
@@ -234,20 +257,20 @@ update msg model =
                 Just minutesValue ->
                     let
                         hoursValue =
-                            parseIntWithDefault model.durationHours
+                            toIntWithDefault model.durationHours
 
                         secondsValue =
-                            parseIntWithDefault model.durationSeconds
+                            toIntWithDefault model.durationSeconds
 
                         duration =
                             if hoursValue == 0 then
-                                hoursMinutesAndSeconds
+                                Hms.hoursMinutesAndSeconds
                                     hoursValue
                                     (max minutesValue 0)
                                     secondsValue
 
                             else
-                                hoursMinutesAndSeconds
+                                Hms.hoursMinutesAndSeconds
                                     hoursValue
                                     minutesValue
                                     secondsValue
@@ -262,20 +285,20 @@ update msg model =
                 Just secondsValue ->
                     let
                         hoursValue =
-                            parseIntWithDefault model.durationHours
+                            toIntWithDefault model.durationHours
 
                         minutesValue =
-                            parseIntWithDefault model.durationMinutes
+                            toIntWithDefault model.durationMinutes
 
                         duration =
                             if hoursValue == 0 && minutesValue == 0 then
-                                hoursMinutesAndSeconds
+                                Hms.hoursMinutesAndSeconds
                                     hoursValue
                                     minutesValue
                                     (max secondsValue 0)
 
                             else
-                                hoursMinutesAndSeconds
+                                Hms.hoursMinutesAndSeconds
                                     hoursValue
                                     minutesValue
                                     secondsValue
@@ -290,18 +313,25 @@ updateDistance : Length -> Model -> Model
 updateDistance distance model =
     let
         pace =
-            minutesAndSecondsPerKilometer
-                (parseIntWithDefault model.pacePerKmMinutes)
-                (parseIntWithDefault model.pacePerKmSeconds)
+            Pace.minutesAndSecondsPerKilometer
+                (toIntWithDefault model.pacePerKmMinutes)
+                (toIntWithDefault model.pacePerKmSeconds)
 
         ( durationHours, durationMinutes, durationSeconds ) =
-            durationFromDistanceAndPace distance pace
+            Pace.durationFromDistanceAndPace distance pace
                 |> inSeconds
-                |> toHoursMinutesAndSeconds
+                |> Hms.toHoursMinutesAndSeconds
+
+        distanceInKilometers =
+            Length.inKilometers distance
+
+        distanceInMiles =
+            Length.inMiles distance
     in
     { model
-        | distanceInKilometers = roundForDisplay <| Length.inKilometers distance
-        , distanceInMiles = roundForDisplay <| Length.inMiles distance
+        | distanceInKilometers = roundForDisplay <| distanceInKilometers
+        , distanceInMiles = roundForDisplay <| distanceInMiles
+        , distanceSelected = Distance.fromLength distance
         , durationHours = String.fromInt durationHours
         , durationMinutes = String.fromInt durationMinutes
         , durationSeconds = String.fromInt durationSeconds
@@ -309,26 +339,26 @@ updateDistance distance model =
 
 
 updatePace : Pace -> Model -> Model
-updatePace pace form =
+updatePace pace model =
     let
         ( pacePerKmMinutes, pacePerKmSeconds ) =
-            inMinutesAndSecondsPerKilometer pace
+            Pace.inMinutesAndSecondsPerKilometer pace
 
         ( pacePerMileMinutes, pacePerMileSeconds ) =
-            inMinutesAndSecondsPerMile pace
+            Pace.inMinutesAndSecondsPerMile pace
 
         speed =
-            paceToSpeed pace
+            Pace.toSpeed pace
 
         distance =
-            distanceFromKmString form.distanceInKilometers
+            Distance.toLength model.distanceSelected
 
         ( durationHours, durationMinutes, durationSeconds ) =
-            durationFromDistanceAndPace distance pace
+            Pace.durationFromDistanceAndPace distance pace
                 |> inSeconds
-                |> toHoursMinutesAndSeconds
+                |> Hms.toHoursMinutesAndSeconds
     in
-    { form
+    { model
         | pacePerKmMinutes = String.fromInt pacePerKmMinutes
         , pacePerKmSeconds = String.fromInt pacePerKmSeconds
         , pacePerMileMinutes = String.fromInt pacePerMileMinutes
@@ -342,26 +372,26 @@ updatePace pace form =
 
 
 updateSpeed : Speed -> Model -> Model
-updateSpeed speed form =
+updateSpeed speed model =
     let
         pace =
-            speedToPace speed
+            Pace.fromSpeed speed
 
         ( pacePerKmMinutes, pacePerKmSeconds ) =
-            inMinutesAndSecondsPerKilometer pace
+            Pace.inMinutesAndSecondsPerKilometer pace
 
         ( pacePerMileMinutes, pacePerMileSeconds ) =
-            inMinutesAndSecondsPerMile pace
+            Pace.inMinutesAndSecondsPerMile pace
 
         distance =
-            distanceFromKmString form.distanceInKilometers
+            Distance.toLength model.distanceSelected
 
         ( durationHours, durationMinutes, durationSeconds ) =
-            durationFromDistanceAndPace distance pace
+            Pace.durationFromDistanceAndPace distance pace
                 |> inSeconds
-                |> toHoursMinutesAndSeconds
+                |> Hms.toHoursMinutesAndSeconds
     in
-    { form
+    { model
         | pacePerKmMinutes = String.fromInt pacePerKmMinutes
         , pacePerKmSeconds = String.fromInt pacePerKmSeconds
         , pacePerMileMinutes = String.fromInt pacePerMileMinutes
@@ -375,27 +405,27 @@ updateSpeed speed form =
 
 
 updateDuration : Duration -> Model -> Model
-updateDuration newTotalTime form =
+updateDuration newTotalTime model =
     let
         ( durationHours, durationMinutes, durationSeconds ) =
-            newTotalTime |> inSeconds |> toHoursMinutesAndSeconds
+            newTotalTime |> inSeconds |> Hms.toHoursMinutesAndSeconds
 
         distance =
-            distanceFromKmString form.distanceInKilometers
+            Distance.toLength model.distanceSelected
 
         pace =
             paceFromDistanceAndDuration distance newTotalTime
 
         speed =
-            paceToSpeed pace
+            Pace.toSpeed pace
 
         ( pacePerKmMinutes, pacePerKmSeconds ) =
-            inMinutesAndSecondsPerKilometer pace
+            Pace.inMinutesAndSecondsPerKilometer pace
 
         ( pacePerMileMinutes, pacePerMileSeconds ) =
-            inMinutesAndSecondsPerMile pace
+            Pace.inMinutesAndSecondsPerMile pace
     in
-    { form
+    { model
         | pacePerKmMinutes = String.fromInt pacePerKmMinutes
         , pacePerKmSeconds = String.fromInt pacePerKmSeconds
         , pacePerMileMinutes = String.fromInt pacePerMileMinutes
@@ -406,14 +436,6 @@ updateDuration newTotalTime form =
         , durationMinutes = String.fromInt durationMinutes
         , durationSeconds = String.fromInt durationSeconds
     }
-
-
-distanceFromKmString : String -> Length
-distanceFromKmString s =
-    s
-        |> String.toFloat
-        |> Maybe.withDefault 0
-        |> Length.kilometers
 
 
 view : Model -> Html Msg
@@ -440,6 +462,10 @@ view model =
                 , Attr.min "0"
                 ]
                 []
+            ]
+        , div []
+            [ label [] [ text "Distance" ]
+            , distanceSelect model.distanceSelected
             ]
         , div []
             [ label [] [ text "Pace in min/km" ]
@@ -525,19 +551,38 @@ view model =
         ]
 
 
+distanceSelect : Distance -> Html Msg
+distanceSelect distanceSelected =
+    let
+        distanceOption : Distance -> Html Msg
+        distanceOption distance =
+            option
+                [ selected (distanceSelected == distance)
+                , value <| Distance.toString distance
+                ]
+                [ text <| Distance.toString distance ]
+    in
+    select [ onInput (SetDistance << Distance.fromString) ] <|
+        [ option [] [] ]
+            ++ List.map distanceOption Distance.distances
+
+
 roundForDisplay : Float -> String
 roundForDisplay n =
     let
+        precision =
+            4
+
         roundedN =
             n
-                |> Round.round 3
+                |> Round.round precision
                 |> String.trim
 
         decimals =
-            String.right 3 roundedN
+            String.right precision roundedN
 
         whole =
-            String.slice 0 -4 roundedN
+            String.slice 0 (-1 * (precision + 1)) roundedN
 
         newDecimals =
             removeTrailingZeros decimals
@@ -563,140 +608,6 @@ removeTrailingZeros s =
     String.foldr trim "" s
 
 
-
--- Pace
-
-
-type alias SecondsPerMeter =
-    Rate Seconds Meters
-
-
-type alias Pace =
-    Quantity Float SecondsPerMeter
-
-
-secondsPerMeter : Float -> Pace
-secondsPerMeter numSecondsPerMeter =
-    Quantity.Quantity numSecondsPerMeter
-
-
-inSecondsPerMeter : Pace -> Float
-inSecondsPerMeter (Quantity.Quantity numSecondsPerMeter) =
-    numSecondsPerMeter
-
-
-minutesPerKilometer : Float -> Pace
-minutesPerKilometer numMinutesPerKilometer =
-    secondsPerMeter ((numMinutesPerKilometer * 60) / 1000)
-
-
-inSecondsPerKilometer : Pace -> Float
-inSecondsPerKilometer (Quantity.Quantity numSecondsPerMeter) =
-    numSecondsPerMeter * 1000
-
-
-minutesAndSecondsPerKilometer : Int -> Int -> Pace
-minutesAndSecondsPerKilometer minutes seconds =
-    secondsPerMeter
-        ((toFloat minutes * 60 + toFloat seconds) / 1000)
-
-
-inMinutesAndSecondsPerKilometer : Pace -> ( Int, Int )
-inMinutesAndSecondsPerKilometer pace =
-    pace |> inSecondsPerKilometer |> toMinutesAndSeconds
-
-
-inSecondsPerMile : Pace -> Float
-inSecondsPerMile (Quantity.Quantity numSecondsPerMeter) =
-    numSecondsPerMeter * mileInMeters
-
-
-minutesAndSecondsPerMile : Int -> Int -> Pace
-minutesAndSecondsPerMile minutes seconds =
-    secondsPerMeter
-        ((toFloat minutes * 60 + toFloat seconds) / mileInMeters)
-
-
-inMinutesAndSecondsPerMile : Pace -> ( Int, Int )
-inMinutesAndSecondsPerMile pace =
-    pace |> inSecondsPerMile |> toMinutesAndSeconds
-
-
-paceFromDistanceAndDuration : Length -> Duration -> Pace
-paceFromDistanceAndDuration distance newTotalTime =
-    secondsPerMeter (inSeconds newTotalTime / inMeters distance)
-
-
-
--- Duration
-
-
-durationFromDistanceAndPace : Length -> Pace -> Duration
-durationFromDistanceAndPace distance pace =
-    seconds <| inMeters distance * inSecondsPerMeter pace
-
-
-
--- Conversion
-
-
-paceToSpeed : Pace -> Speed
-paceToSpeed (Quantity.Quantity numSecondsPerMeter) =
-    metersPerSecond (1 / numSecondsPerMeter)
-
-
-speedToPace : Speed -> Pace
-speedToPace (Quantity.Quantity numMetersPerSecond) =
-    secondsPerMeter (1 / numMetersPerSecond)
-
-
-
--- Duration
-
-
-hoursMinutesAndSeconds : Int -> Int -> Int -> Duration
-hoursMinutesAndSeconds hoursValue minutesValue secondsValue =
-    seconds <| toFloat (hoursValue * 3600 + minutesValue * 60 + secondsValue)
-
-
-toMinutesAndSeconds : Float -> ( Int, Int )
-toMinutesAndSeconds totalSecondsFloat =
-    let
-        totalSeconds =
-            round totalSecondsFloat
-
-        minutes =
-            totalSeconds // 60
-
-        seconds =
-            totalSeconds - (minutes * 60)
-    in
-    ( minutes, seconds )
-
-
-toHoursMinutesAndSeconds : Float -> ( Int, Int, Int )
-toHoursMinutesAndSeconds totalSecondsFloat =
-    let
-        totalSeconds =
-            round totalSecondsFloat
-
-        hours =
-            totalSeconds // 3600
-
-        minutes =
-            (totalSeconds - (3600 * hours)) // 60
-
-        seconds =
-            totalSeconds - (3600 * hours) - (minutes * 60)
-    in
-    ( hours, minutes, seconds )
-
-
-mileInMeters : Float
-mileInMeters =
-    5280 * 12 * 0.0254
-
-
-parseIntWithDefault : String -> Int
-parseIntWithDefault s =
+toIntWithDefault : String -> Int
+toIntWithDefault s =
     s |> String.toInt |> Maybe.withDefault 0
