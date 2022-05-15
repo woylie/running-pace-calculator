@@ -9085,6 +9085,7 @@ var $author$project$Distance$fromString = function (s) {
 		s,
 		$author$project$Distance$toString($author$project$Distance$Marathon)) ? $elm$core$Maybe$Just($author$project$Distance$Marathon) : $elm$core$Maybe$Nothing)))));
 };
+var $rtfeldman$elm_css$Html$Styled$Attributes$id = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('id');
 var $rtfeldman$elm_css$Css$backgroundColor = function (c) {
 	return A2($rtfeldman$elm_css$Css$property, 'background-color', c.E);
 };
@@ -9180,8 +9181,8 @@ var $rtfeldman$elm_css$Html$Styled$Attributes$boolProperty = F2(
 	});
 var $rtfeldman$elm_css$Html$Styled$Attributes$selected = $rtfeldman$elm_css$Html$Styled$Attributes$boolProperty('selected');
 var $rtfeldman$elm_css$Html$Styled$Attributes$value = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('value');
-var $author$project$Components$select = F3(
-	function (currentValue, msg, options) {
+var $author$project$Components$select = F4(
+	function (inputId, currentValue, msg, options) {
 		var option = function (_v0) {
 			var optionValue = _v0.a;
 			var optionText = _v0.b;
@@ -9202,6 +9203,7 @@ var $author$project$Components$select = F3(
 			$rtfeldman$elm_css$Html$Styled$select,
 			_List_fromArray(
 				[
+					$rtfeldman$elm_css$Html$Styled$Attributes$id(inputId),
 					$rtfeldman$elm_css$Html$Styled$Events$onInput(msg),
 					$rtfeldman$elm_css$Html$Styled$Attributes$css($author$project$Components$inputCss)
 				]),
@@ -9210,19 +9212,21 @@ var $author$project$Components$select = F3(
 				A2($rtfeldman$elm_css$Html$Styled$option, _List_Nil, _List_Nil),
 				A2($elm$core$List$map, option, options)));
 	});
-var $author$project$Main$distanceSelect = function (distanceSelected) {
-	var toOption = function (distance) {
-		return _Utils_Tuple2(
-			$author$project$Distance$toString(distance),
-			$author$project$Distance$toString(distance));
-	};
-	var options = A2($elm$core$List$map, toOption, $author$project$Distance$distances);
-	return A3(
-		$author$project$Components$select,
-		$author$project$Distance$toString(distanceSelected),
-		A2($elm$core$Basics$composeL, $author$project$Main$SetDistance, $author$project$Distance$fromString),
-		options);
-};
+var $author$project$Main$distanceSelect = F2(
+	function (inputId, distanceSelected) {
+		var toOption = function (distance) {
+			return _Utils_Tuple2(
+				$author$project$Distance$toString(distance),
+				$author$project$Distance$toString(distance));
+		};
+		var options = A2($elm$core$List$map, toOption, $author$project$Distance$distances);
+		return A4(
+			$author$project$Components$select,
+			inputId,
+			$author$project$Distance$toString(distanceSelected),
+			A2($elm$core$Basics$composeL, $author$project$Main$SetDistance, $author$project$Distance$fromString),
+			options);
+	});
 var $rtfeldman$elm_css$Html$Styled$div = $rtfeldman$elm_css$Html$Styled$node('div');
 var $rtfeldman$elm_css$Css$block = {f: 0, E: 'block'};
 var $rtfeldman$elm_css$Css$display = $rtfeldman$elm_css$Css$prop1('display');
@@ -9362,7 +9366,6 @@ var $author$project$Components$fieldset = F2(
 					]),
 				content));
 	});
-var $rtfeldman$elm_css$Html$Styled$Attributes$id = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('id');
 var $rtfeldman$elm_css$Html$Styled$input = $rtfeldman$elm_css$Html$Styled$node('input');
 var $rtfeldman$elm_css$Html$Styled$Attributes$min = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('min');
 var $rtfeldman$elm_css$Html$Styled$Attributes$type_ = $rtfeldman$elm_css$Html$Styled$Attributes$stringProperty('type');
@@ -9429,7 +9432,7 @@ var $author$project$Main$view = function (model) {
 						'Distance preset',
 						_List_fromArray(
 							[
-								$author$project$Main$distanceSelect(model.H)
+								A2($author$project$Main$distanceSelect, 'rpc-field-distance', model.H)
 							]))
 					])),
 				A2(
